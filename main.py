@@ -1,28 +1,39 @@
 from ball import Ball
 from paddle import Paddle
-from constants import width, height
+from constants import *
 from block_manager import *
 from util import *
 import pygame
 
 running = True
-game_start = False
+can_serve = False
 screen = None
 clock = None
 paddle = None
 ball = None
+paddle_height = None
+lives = max_lives
 
 def handle_events():
     global running
-    global game_start
+    global can_serve
     for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
-                    game_start = True
+                if event.key == pygame.K_SPACE and can_serve:
+                    can_serve = False
                     ball.velocity[1] = -1
                     ball.velocity[0] = -1
+
+def on_death():
+    global lives
+    lives -= 1
+    if lives == 0:
+        # All lives are used up, reset the blocks.
+        lives = max_lives
+        create_blocks()
+
 def draw():
     global ball_colliding
     screen.fill((0,0,0))
@@ -36,27 +47,32 @@ def draw():
 def game_loop():
     global running
     global game_start
-    
+    global can_serve
+    can_serve = True
     while running:
         dt = clock.tick() / 1000
         handle_events()
         mouse_x, mouse_y = pygame.mouse.get_pos()
         paddle.position[0] = clamp(mouse_x - paddle.size[0] / 2, 0, screen.get_width() - paddle.size[0])
-        if not game_start:
+        if can_serve:
             # Place the ball slightly above the paddle.
             ball.position[0] = paddle.position[0] + paddle.size[0] / 2
             ball.position[1] = paddle.position[1] - 25
+        if ball.position[1] >= paddle_height + paddle.size[1]:
+            on_death()
+            can_serve = True
         colliders = [paddle] + get_blocks()
         ball.update(dt, colliders)
         draw()
 
 def init():
-    global screen, clock, paddle, ball
+    global screen, clock, paddle, ball, paddle_height
     pygame.init()
     pygame.display.set_caption("Breakout!")
     screen = pygame.display.set_mode([width,height])
     clock = pygame.time.Clock()
-    paddle = Paddle(screen.get_height() - 50)
+    paddle_height = screen.get_height() - 50
+    paddle = Paddle(paddle_height)
     ball = Ball(200, 200)
     ball.velocity = [0,0]
     create_blocks()
