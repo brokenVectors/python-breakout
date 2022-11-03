@@ -22,4 +22,4 @@ def create_blocks():
     clear_blocks()
     for y in range(0,rows-1):
         for x in range(0, cols-1):
-            add_block(Block(margin+x*block_width+x*padding,y*block_height+y*padding, block_width, block_height))
+            add_block(Block(margin+x*block_width+x*padding,margin/2+y*block_height+y*padding, block_width, block_height))

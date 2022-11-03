@@ -12,6 +12,7 @@ clock = None
 paddle = None
 ball = None
 paddle_height = None
+font = None
 lives = max_lives
 
 def handle_events():
@@ -42,6 +43,8 @@ def draw():
     for block in blocks:
         pygame.draw.rect(screen, (255,255,255), pygame.Rect(block.position[0], block.position[1], block.size[0], block.size[1]))
     pygame.draw.rect(screen, (255,255,255), pygame.Rect(ball.position[0], ball.position[1], ball.size[0], ball.size[1]))
+    img = font.render(f'{lives} LIVES LEFT', True, (255,255,255))
+    screen.blit(img, (500,340))
     pygame.display.flip()
 
 def game_loop():
@@ -61,12 +64,16 @@ def game_loop():
         if ball.position[1] >= paddle_height + paddle.size[1]:
             on_death()
             can_serve = True
+        if len(get_blocks()) == 0:
+            create_blocks()
+            lives = max_lives
+            can_serve = True
         colliders = [paddle] + get_blocks()
         ball.update(dt, colliders)
         draw()
 
 def init():
-    global screen, clock, paddle, ball, paddle_height
+    global screen, clock, paddle, ball, paddle_height, font
     pygame.init()
     pygame.display.set_caption("Breakout!")
     screen = pygame.display.set_mode([width,height])
@@ -75,6 +82,8 @@ def init():
     paddle = Paddle(paddle_height)
     ball = Ball(200, 200)
     ball.velocity = [0,0]
+    font = pygame.font.SysFont(None, 24)
+   
     create_blocks()
 
 init()
